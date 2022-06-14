@@ -29,7 +29,7 @@ fG=f*10^-9;tps=t*10^12;%GHz;
 
 % Follwing settings hold for both the TL and TAI approaches
 % Design tl
- tltry=0.2e-9;%6/65e9;%e-12;
+ tltly=0.2e-9;%6/65e9;%e-12;
 % phimax_pi_units=7;%8;%2.5;%eta*pi/4/pi
 % %% find b2 from eta and tl
 %  eta=phimax_pi_units*4;%10; % number of points per window
@@ -39,7 +39,7 @@ fG=f*10^-9;tps=t*10^12;%GHz;
 % tltly=sqrt(eta*phi*2*pi)
 
 % optimize tl to be integer of dt
-ntl=round(tltry/dt);
+ntl=round(tltly/dt);
 tl=ntl*dt;
 nSamps=ceil(lent/ntl);
 tSingleSamp=dt*(1:ntl);
