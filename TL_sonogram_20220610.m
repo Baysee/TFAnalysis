@@ -8,7 +8,7 @@ addpath(libPath)
 
 
 lent=2^21;
-tWind=100e-9;                                                              %second. Actual time array=+-time_window/2
+tWind=600e-9;                                                              %second. Actual time array=+-time_window/2
 
 % t=linspace(0,tWind,lent);
 t=linspace(-tWind/2,tWind/2,lent);
@@ -29,7 +29,7 @@ fG=f*10^-9;tps=t*10^12;%GHz;
 
 % Follwing settings hold for both the TL and TAI approaches
 % Design tl
- tltry=0.2e-9;%6/65e9;%e-12;
+ tltry=20/92e9;%e-9;%1.65e-9;%6/65e9;%e-12;
 % phimax_pi_units=7;%8;%2.5;%eta*pi/4/pi
 % %% find b2 from eta and tl
 %  eta=phimax_pi_units*4;%10; % number of points per window
@@ -46,10 +46,10 @@ tSingleSamp=dt*(1:ntl);
 lensInds=0:ntl:lent;
 
 % Optimize eta so that eta/tl is integer of df
-etaini=7;
+etaini=20;
 
 eta=round(etaini/(tl*df))*tl*df;
-nFreqMax=eta/tl/df
+nFreqMax=round(eta/tl/df)
 % nfreqMax=(eta/(ntl*dt^2
 % nfreqMax=round(eta/tl/df)
 % tl=eta/df/nfreqMax
@@ -57,39 +57,39 @@ fmax=nFreqMax*df;
 
 %% Time Lens - Uncomment below for TL and comment "Talbot TAI section"
 % 
-%% Find eta from b2 and tl
+% %%% Find eta from b2 and tl
 % phi=50*2.1823e-23;
 % % eta=(tl^2)/(phi*2*pi)
-
-% C_tl=tl^-1*120e9;
-C_tl=2*pi*eta/(tl^2);
-singleSamp=C_tl/2*(tSingleSamp-tSingleSamp(round(ntl/2))).^2;
-% sampSig=repmat(singleSamp,1,nSamps);
-sampSigRaw=repmat(singleSamp,1,nSamps);
-sampSigRawLent=sampSigRaw(1:lent);
-sampSig=sampSigRawLent;%real(filtSG_tf(sampSigRawLent,t,f,round(800e9/df),5,0));
- sampSig=sampSig(1:lent);
-sampFreq=1/tl
-tl*C_tl/(2*pi)
+% 
+% % C_tl=tl^-1*120e9;
+% C_tl=2*pi*eta/(tl^2);
+% singleSamp=C_tl/2*(tSingleSamp-tSingleSamp(round(ntl/2))).^2;
+% % sampSig=repmat(singleSamp,1,nSamps);
+% sampSigRaw=repmat(singleSamp,1,nSamps);
+% sampSigRawLent=sampSigRaw(1:lent);
+% sampSig=sampSigRawLent;%real(filtSG_tf(sampSigRawLent,t,f,round(800e9/df),5,0));
+%  sampSig=sampSig(1:lent);
+% sampFreq=1/tl
+% tl*C_tl/(2*pi)
 
 %% Talbot TAI - Uncomment below for TAI and comment "Time Lens"
-% 
-% 
-% m=round(eta);
-% ts=tl/m
-% AWG_nuq=1/ts
-% p=1;
-% s=-(m-1);%generateSparameter(p,m);
-% GV=wrapTo2Pi(s/m*pi*((0:m-1)).^2); 
-% nSampsPer_ts=ceil(ntl/m)
-% GVtly=repelem(GV,1,nSampsPer_ts);
-% t_samples=linspace(tSingleSamp(1),tSingleSamp(end),numel(GVtly));%(1:numel(GVtly))*dt;%/numel(GVtly)*tl;
-% singleSamp=interp1(t_samples,GVtly,tSingleSamp);
-% allSamps=repmat(singleSamp,1,nSamps);
-% allSamps=allSamps(1:lent);
-% sampSig=real(filtSG_tf(allSamps,t,f,round(200e9/df),10,1));
-% 
-% 
+
+
+m=round(eta);
+ts=tl/m
+AWG_nuq=1/ts
+p=1;
+s=-(m-1);%generateSparameter(p,m);
+GV=wrapTo2Pi(s/m*pi*((0:m-1)).^2); 
+nSampsPer_ts=ceil(ntl/m)
+GVtly=repelem(GV,1,nSampsPer_ts);
+t_samples=linspace(tSingleSamp(1),tSingleSamp(end),numel(GVtly));%(1:numel(GVtly))*dt;%/numel(GVtly)*tl;
+singleSamp=interp1(t_samples,GVtly,tSingleSamp);
+allSamps=repmat(singleSamp,1,nSamps);
+allSamps=allSamps(1:lent);
+sampSig=real(filtSG_tf(allSamps,t,f,round(400e9/df),10,1));
+
+% % 
 
 %%%%%%%%%%%%%%%%
 %% Dispersion %% 
@@ -99,9 +99,9 @@ tl*C_tl/(2*pi)
 %% Sample (obsolete)
 % phi=tl^2/(2*pi);
 %% Time Lens 
-phi=1/C_tl % Get exact phi for simulations
+% phi=1/C_tl % Get exact phi for simulations
 % TAI
-% phi=p/m*(1/2*pi)*(tl/m)^2;%p*m*(tl/m)^2/(2*pi);
+phi=m*p*(1/(2*pi))*(tl/m)^2;%p*m*(tl/m)^2/(2*pi);
 
  phi2perKm=   2.1823e-23;
  phi/phi2perKm
@@ -118,14 +118,7 @@ phaseGVD=phi/2*(2*pi*f).^2;
 %%%%%%%%%%%%%%%%%%
 SUT=ones(1,lent);
 % 
-% 
-% 
-% % fSUT=0.25*(C_tl*tl)/(2*pi);
-% fmax=eta/tl;
-% fSUT=linspace(0,fmax,numel(t));
-% SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
-% SUT_f=nfft(SUT,dt);
-% 
+
 BW=Fs/20;
 tExt=tl*0.3;
 phi2=tExt/(2*pi*BW);
@@ -135,29 +128,14 @@ SUT=nifft(SUT_f,Fs);
 % 
 
 tChirp=tSingleSamp;
-% SUTfreqs=linspace(-2e12,2e12,numel(tChirp));
-f1=0.01e12; f0=fmax*20;%0.1e12;
+f1=0.01e12; f0=1.5e12;%fmax*20;%0.1e12;
 SUT=zeros(1,lent);
 SUT(round((lent/2-ntl/2):(lent/2+ntl/2-1)))=exp(1j*(2*pi*((f1-f0)/(2*tl)*tChirp.^2+f0*tChirp)));%+ones(1,ntl);
-SUT_f=nfft(SUT,dt);tl
+SUT=SUT.*superGauss(0,tl/2*0.9,10,t,0);
+SUT_f=nfft(SUT,dt);
 
 
 
-
-% 
-% % fSUT=0.25*(C_tl*tl)/(2*pi);
-% fSUT=linspace(0,1e3*(C_tl*tl)/(2*pi)/4,numel(t));
-% SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
-% 
-% fSUT=linspace(0,1e2*(C_tl*tl)/(2*pi)/4,ntl);
-% SUTAction=(cos(2*pi*fSUT.*tSingleSamp));%.*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
-% SUT=zeros(1,lent);
-% SUT(lent/2-round(ntl/2):lent/2+round(ntl/2)-1)=SUTAction;
-% SUT_f=nfft(SUT,dt);
-
-% SUT_f=superGauss(0,3e12,10,f,0).*exp(1j*1*phi2perKm*(2*pi*f).^2);%
-% SUT=nifft(SUT_f,Fs);
-% 
 % BW=3e12;%Fs/20;
 % tExt=tl*2;
 % phi2=tExt/(2*pi*BW);
@@ -204,41 +182,57 @@ sampSUT_sift_disp_t=nifft(sampSUT_sift_disp,Fs);
 sampSUT_sift_out_t=sampSUT_sift_disp_t.*exp(1j*sampSig);
 sampSUT_sift_out=nfft(sampSUT_sift_out_t,dt);
 
+phi_f2t=15500e-24;
+freqToTime_f=exp(1j*phi_f2t/2*(2*pi*f).^2).*sampSUT_sift_out;%
+freqToTime=nifft(freqToTime_f,Fs);
 
 
+f_f2t=t/(2*pi*abs(phi_f2t));
+df_f2t=mean(diff(f_f2t));
+nFreqMax_f2t=round(fmax/df_f2t);
+nLensesf2t=floor(lent/nFreqMax_f2t);
+sonof2t=freqToTime(1:nFreqMax_f2t*nLensesf2t);
+sonof2t=circshift(sonof2t,round(nFreqMax_f2t/4));
+sono2D_f2t=reshape(sonof2t,nFreqMax_f2t,nLensesf2t);
+
+fsono_f2t=((1:nLensesf2t)-45)*fmax;
+tSono_f2t=tl/2*linspace(-1,1,nFreqMax_f2t);
+figure;imagesc(fsono_f2t*1e-12,tSono_f2t*1e12,abs(sono2D_f2t));
 
 
+figure;plot(f*1e-12,abs(sampSUT_sift_out).^2)
+yyaxis right
+plot(f_f2t*1e-12,abs(freqToTime).^2)
+xlabel('Frequency (THz)')
 
 
 %% Filter Spectlogram Signal
-% sampSUTdisp=(filtSG_tf(sampSUTdisp,t,f,round((10/tl)/df),5,0));
-% sono=reshape(circshift(sampSUT_sift_out(1:floor(lent/round(nFreqMax))*round(nFreqMax)),round(nFreqMax/2)-5500),round(nFreqMax),floor(lent/nFreqMax));
-sono=reshape(circshift(sampSUT_sift_out(1:floor(lent/round(nFreqMax))*round(nFreqMax)),200),round(nFreqMax),floor(lent/nFreqMax));
+nLenses=floor(lent/(nFreqMax))
+sonoLen=nLenses*(nFreqMax);
 
-%%% Reshape output signal to get 2D representation
-% sono=reshape(circshift(sampSUT_sift_out(1:floor(lent/round(nFreqMax))*round(nFreqMax)),0),round(nFreqMax),floor(lent/nFreqMax));
+sono=reshape(sampSUT_sift_out(1:sonoLen),(nFreqMax),nLenses);
+[sono,ys]=centerSpectrogramF(abs(sono),nFreqMax,nLenses,abs(sampSUT_sift_out(1:sonoLen)),0,20);
 figure;imagesc(abs(sono).^2)
-figure;plot(f,abs(sampSUT_sift_out).^2)
-f_spec=(tSingleSamp-max(tSingleSamp)/2)/phi/(2*pi);
-t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
 
-%%% Reshape output signal to get 2D representation
-% sptgm=reshape(circshift(sampSUTdisp(1:lensInds(end)),0),ntl,(numel(lensInds)-1));
-% f_spec=(tSingleSamp-max(tSingleSamp)/2)/phi/(2*pi);
-% t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
-
-
-t_spec=linspace(-fmax/2,fmax/2,nFreqMax)*2*pi/C_tl;
+% t_spec=linspace(-fmax/2,fmax/2,nFreqMax)*2*pi/C_tl;
+t_spec=linspace(-tl/2,tl/2,nFreqMax);
 f_spec=linspace(f(1),f(floor(lent/nFreqMax)*nFreqMax),floor(lent/nFreqMax));%:(floor(lent/nFreqMax))*
-% f_spec=(tSingleSamp-max(tSingleSamp)/2)/phi/(2*pi);
-% t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
-figure;imagesc(f_spec*1e-12,t_spec*1e9,abs(sono).^2)
-set(gca,'YDir','normal')
-xlabel('Frequency (THz)')
-ylabel('Time (ns)')
-figure;plot(f,abs(sampSUT_sift_out).^2)
-figure;imagesc(abs(sono).^2)
 
+% Find f and t lims
+[riseSUT,fallSUT]=getRiseFall(abs(SUT).^2,0.1);
+[risesampSUT_sift_out_t,fallsampSUT_sift_out_t]=getRiseFall(abs(sampSUT_sift_out_t).^2,0.1);
+[riseSUTf,fallSUTf]=getRiseFall(abs(SUT_f).^2,0.1);
+[risesampSUT_sift_out,fallsampSUT_sift_out]=getRiseFall(abs(sampSUT_sift_out).^2,0.1);
+
+risef=min(riseSUTf,risesampSUT_sift_out);
+fallf=max(fallSUTf,fallsampSUT_sift_out);
+deltaf=fallf-risef;
+flims=[f(round(risef-deltaf*0.1)) f(round(fallf+deltaf*0.1))]*1e-12;
+
+riset=min(riseSUT,risesampSUT_sift_out_t);
+fallt=max(fallSUT,fallsampSUT_sift_out_t);
+deltat=fallt-riset;
+tlims=[t(round(riset-deltat*0.1)) t(round(fallt+deltat*0.1))]*1e12;
 
 figure;
 subplot(3,1,1)
@@ -247,176 +241,26 @@ set(gca,'YDir','normal')
 % legend('SSIFT')
 xlabel('Frequency (THz)')
 ylabel('Time (ps)')
+xlim([f(round(risef-deltaf*0.1)) f(round(fallf+deltaf*0.1))]*1e-12)
+
 subplot(3,1,2)
-plot(f*1e-12,abs(sampSUT_sift_out))
+plot(f*1e-12,abs(SUT_f))
 hold on
-plot(f*1e-12,real(sampSUT_sift_out))
-legend('SUT','Spectlal tlace SSIFT')
+plot(f*1e-12,real(SUT_f))
+plot(f*1e-12,abs(sampSUT_sift_out))
+xlim(flims)
+legend('abs SUT','real SUT','Spectlal trace SSIFT')
 xlabel('Frequency (THz)')
 subplot(3,1,3)
 plot(t*1e12,abs(SUT).^2)
+hold on 
+plot(t*1e12,real(SUT).^2)
 yyaxis right
-plot(t*1e12,abs(sampSUT_sift_out).^2)
-legend('SUT','Temporal tlace SSIFT')
+plot(t*1e12,abs(sampSUT_sift_out_t).^2)
+xlim(tlims)
+legend('abs SUT','real SUT','Temporal tlace SSIFT')
 xlabel('Time (ps)')
 % figure;imagesc(abs(sono).^2)
-
-
-% 
-% %% Reshape SUT for FFT
-% fSingleSamp=linspace(-Fs/2,Fs/2,numel(tSingleSamp));
-% padLen=2^17;
-%  SUT2D=reshape(circshift(SUT(1:lensInds(end)),0),ntl,(numel(lensInds)-1));
-% SUT2DPad=[zeros(padLen,numel(SUT2D(1,:))); SUT2D; zeros(padLen,numel(SUT2D(1,:)))];
-% tPad=((1:numel(SUT2DPad(:,1)))-numel(SUT2DPad))*dt;
-% 
-% onesPad=ones(padLen,numel(SUT2D(1,:)));
-% SUTiniBits=onesPad+SUT2D(1,:);
-% SUTfinBits=onesPad+SUT2D(end,:);
-% SUT2DPad=[SUTiniBits; SUT2D; SUTfinBits];
-% figure; subplot(2,1,1)
-% plot(tPad,real(SUT2DPad)); hold on; plot(tPad,imag(SUT2DPad))
-% subplot(2,1,2)
-% fSingleSamp=linspace(-Fs/2,Fs/2,numel(SUT2DPad(:,1)));
-% plot(fSingleSamp,abs(fftshift(fft(ifftshift(SUT2DPad)))))
-
-%% Plotting section
-
-tlims=[-200 200]*tl+7.511e-8;
-ylims=([-0.1 1.1]);
-ylimsNegPos=([-1.1 1.1]);
-numtlWindLims=20;
-tlims='auto';%(t(end)/2+[-numtlWindLims*tl numtlWindLims*tl])*1e9;
-% tlims=[t(1) t(end)];
-
-tps=1e12; tns=1e9; tus=1e6; 
-lbps='Time (ps)'; lbns='Time (ns)'; lbus='Time (us)';
-fG=1e-9; lbG='Frequency (GHz)';
-figure('Renderer', 'painters', 'Position', [50 50 1200 700])
-% sampling signal in the time domain
-
-
-
-
-
-subplot(4,4,1:4)
-plot(t*tns,abs(SUT).^2/(max(abs(SUT).^2)))
-hold on
-plot(t*tns,abs(sampSUTdisp).^2/(max(abs(sampSUTdisp).^2)))
-ylabel('Intensity')
-yyaxis right
-plot(t*tns,sampSig)
-%  xlim([t(1) t(end)]*tns)
- xlim(tlims);%ylim(ylims);
-xlabel(lbns)
-legend('sampled SUT','Dispersed wvf','Time Lens')
-ylabel('Phase (rad)')
-
-
-
-subplot(4,4,5:8)
-plot(t*tns,abs(SUT));%/(max(abs(SUT))))
-hold on
-plot(t*tns,angle(SUT));%/(max(angle(SUT))))
-
-plot(t*tns,abs(sampSUTdisp).^2/(max(abs(sampSUTdisp).^2)))
-yyaxis right
-plot(t*tns,sampSig)
-
-ylabel('Intensity')
-% yyaxis right
-% plot(t*tns,sampSig)
- xlim(tlims);%ylim(ylimsNegPos);
-xlabel(lbns)
-legend('abs','angle','spectlogram')
-ylabel('Phase (rad)')
-
-subplot(4,4,9:12)
-% plot(t*tns,real(SUT)/(max(real(SUT))))
-% hold on
-% plot(t*tns,imag(SUT)/(max(imag(SUT))))
-
-plot(t*tns,abs(sampSUTdisp).^2/(max(abs(sampSUTdisp).^2)))
-ylabel('Intensity')
-% yyaxis right
-% plot(t*tns,sampSig)
- xlim(tlims);%ylim(ylimsNegPos);
-xlabel(lbns)
-legend('real','imag','spectlogram')
-ylabel('Phase (rad)')
-
-subplot(4,4,13:16)
-
-    imagesc(t_spec*tns,f_spec*fG,(abs(sono).^2));
-    hcb=colorbar();
-     xlim(tlims)
-
-    ylabel(hcb,'Power (dB)')
-    xlabel('Time (ns)')
-    
-%% fold over spectlogram for "eye diagram"
-
-
-
-% subplot(4,4,5:6)
-% plot(t*tns,abs(sampSUT).^2/(max(abs(sampSUT).^2)))
-% hold on
-% plot(t*tns,abs(sampSUTdisp).^2/(max(abs(sampSUTdisp).^2)))
-% ylabel('Intensity')
-% yyaxis right
-% plot(t*tns,sampSig)
-% xlimProp=1/8;
-%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tl*tns])
-% xlabel(lbns)
-% 
-% % legend('sampled SUT','Dispersed wvf','Time Lens')
-% 
-% subplot(4,4,7:8)
-% plot(t*tns,abs(sampSUT).^2/(max(abs(sampSUT).^2)))
-% hold on
-% plot(t*tns,abs(sampSUTdisp).^2/(max(abs(sampSUTdisp).^2)))
-% yyaxis right
-% plot(t*tns,sampSig)
-% xlimProp=5/6;
-%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tl*tns])
-% xlabel(lbns)
-% ylabel('Phase (rad)')
-% 
-% 
-% subplot(4,4,9:12)
-% % if logPlot
-%     imagesc(t_spec*tus,f_spec*fG,10*log10(abs(sptgm).^2));
-%     caxis([-35 -0.5])
-%     hcb=colorbar();
-%     ylabel(hcb,'Power (dB)')
-% % else
-% %     imagesc(t_spec*tus,f_spec*fG,(abs(sptgm).^2));
-% %     hcb=colorbar()
-% %     ylabel(hcb,'Power (mW)')
-% % end
-% % xlim(tlims*tus)
-% xlabel(lbus); ylabel(lbG);
-% set(findall(gcf,'-property','FontSize'),'FontSize',16)
-% 
-% 
-% subplot(4,4,13:16)
-% % if logPlot
-% %     imagesc(t_spec*tus,f_spec*fG,10*log10(abs(sptgm).^2));
-% %     caxis([-35 -0.5])
-% %     hcb=colorbar()
-% %     ylabel(hcb,'Power (dB)')
-% % else
-%     imagesc(t_spec*tus,f_spec*fG,10*log10(abs(sptgm).^2));
-%     hcb=colorbar();
-%     ylabel(hcb,'Power (dB)')
-% % %     imagesc(t_spec*tus,f_spec*fG,(abs(sptgm).^2));
-% %     hcb=colorbar();
-% %     ylabel(hcb,'Power (mW)')
-% % end
-% % xlim(tlims*tus)
-% xlabel(lbus); ylabel(lbG);
-% set(findall(gcf,'-property','FontSize'),'FontSize',16)
-% 
 
 
 function waveform=superGauss(C,t0,m,xs,center)
