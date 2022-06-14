@@ -1,5 +1,6 @@
-% Spectrogram function
-addpath('/Users/ben/Documents/MATLAB/library_repo')
+% Spectlogram function
+[libPath,outputPath]=definePaths(1);
+addpath(libPath)
 %% Time frequency vectors definition
 % 
 % lent=2^22;
@@ -23,68 +24,70 @@ scale=1;
 
 %% Time Lens Approach
 
-% Find tr from maximum sampling rate of AWG
-%  m=10;%ntr/divAmount;
-% trTry=m/65e9;
+% Find tl from maximum sampling rate of AWG
+%  m=10;%ntl/divAmount;
+% tltly=m/65e9;
 
 % Follwing settings hold for both the TL and TAI approaches
-% Design tr
- trTry=0.663e-9;%6/65e9;%e-12;
+% Design tl
+ tltly=0.663e-9;%6/65e9;%e-12;
 % phimax_pi_units=7;%8;%2.5;%eta*pi/4/pi
-% %% find b2 from eta and tr
+% %% find b2 from eta and tl
 %  eta=phimax_pi_units*4;%10; % number of points per window
-% Find tr from eta and phi2
+% Find tl from eta and phi2
 % phi=2651e-24;%720*2.1823e-23;
 % eta=16;
-% trTry=sqrt(eta*phi*2*pi)
+% tltly=sqrt(eta*phi*2*pi)
 
-% optimize tr to be integer of dt
-ntr=round(trTry/dt);
-tr=ntr*dt;
-nSamps=ceil(lent/ntr);
-tSingleSamp=dt*(1:ntr);
-lensInds=0:ntr:lent;
+% optimize tl to be integer of dt
+ntl=round(tltly/dt);
+tl=ntl*dt;
+nSamps=ceil(lent/ntl);
+tSingleSamp=dt*(1:ntl);
+lensInds=0:ntl:lent;
 
-% Optimize eta so that eta/tr is integer of df
-etaini=7;
-freqMax=eta/tr
-eta=round(etaini/(tr*df))*tr*df;
-nFreqMax=eta/tr/df
-% nfreqMax=(eta/(ntr*dt^2
-% nfreqMax=round(eta/tr/df)
-% tr=eta/df/nfreqMax
+% Optimize eta so that eta/tl is integer of df
+etaini=30;
+
+eta=round(etaini/(tl*df))*tl*df;
+
+freqMax=eta/tl
+nFreqMax=eta/tl/df
+% nfreqMax=(eta/(ntl*dt^2
+% nfreqMax=round(eta/tl/df)
+% tl=eta/df/nfreqMax
 
 
 %% Time Lens - Uncomment below for TL and comment "Talbot TAI section"
 % 
-%% Find eta from b2 and tr
+%% Find eta from b2 and tl
 % phi=50*2.1823e-23;
-% % eta=(tr^2)/(phi*2*pi)
+% % eta=(tl^2)/(phi*2*pi)
 % 
-% % C_tl=tr^-1*120e9;
-% C_tl=2*pi*eta/(tr^2);
-% singleSamp=C_tl/2*(tSingleSamp-tSingleSamp(round(ntr/2))).^2;
+% % C_tl=tl^-1*120e9;
+% C_tl=2*pi*eta/(tl^2);
+% singleSamp=C_tl/2*(tSingleSamp-tSingleSamp(round(ntl/2))).^2;
 % % sampSig=repmat(singleSamp,1,nSamps);
 % sampSigRaw=repmat(singleSamp,1,nSamps);
 % sampSigRawLent=sampSigRaw(1:lent);
 %  sampSig=real(filtSG_tf(sampSigRawLent,t,f,round(800e9/df),5,0));
 %  sampSig=sampSig(1:lent);
-% sampFreq=1/tr
-% tr*C_tl/(2*pi)
+% sampFreq=1/tl
+% tl*C_tl/(2*pi)
 
 %% Talbot TAI - Uncomment below for TAI and comment "Time Lens"
 
 
 m=round(eta);
-ts=tr/m
+ts=tl/m
 AWG_nuq=1/ts
 p=1;
 s=generateSparameter(p,m);
 GV=wrapTo2Pi(s/m*pi*((0:m-1)).^2); 
-nSampsPer_ts=ceil(ntr/m)
-GVtry=repelem(GV,1,nSampsPer_ts);
-t_samples=linspace(tSingleSamp(1),tSingleSamp(end),numel(GVtry));%(1:numel(GVtry))*dt;%/numel(GVtry)*tr;
-singleSamp=interp1(t_samples,GVtry,tSingleSamp);
+nSampsPer_ts=ceil(ntl/m)
+GVtly=repelem(GV,1,nSampsPer_ts);
+t_samples=linspace(tSingleSamp(1),tSingleSamp(end),numel(GVtly));%(1:numel(GVtly))*dt;%/numel(GVtly)*tl;
+singleSamp=interp1(t_samples,GVtly,tSingleSamp);
 allSamps=repmat(singleSamp,1,nSamps);
 allSamps=allSamps(1:lent);
 sampSig=real(filtSG_tf(allSamps,t,f,round(200e9/df),10,1));
@@ -97,11 +100,11 @@ sampSig=real(filtSG_tf(allSamps,t,f,round(200e9/df),10,1));
 
 
 %% Sample (obsolete)
-% phi=tr^2/(2*pi);
+% phi=tl^2/(2*pi);
 %% Time Lens 
 % phi=1/C_tl % Get exact phi for simulations
 % TAI
-phi=p/m*(1/2*pi)*(tr/m)^2;%p*m*(tr/m)^2/(2*pi);
+phi=p/m*(1/2*pi)*(tl/m)^2;%p*m*(tl/m)^2/(2*pi);
 
  phi2perKm=   2.1823e-23;
  phi/phi2perKm
@@ -117,14 +120,18 @@ phaseGVD=phi/2*(2*pi*f).^2;
 %% Generate SUT %%
 %%%%%%%%%%%%%%%%%%
 SUT=ones(1,lent);
-
-
-
-% fSUT=0.25*(C_tl*tr)/(2*pi);
-fSUT=linspace(0,100*(C_tl*tr)/(2*pi)/4,numel(t));
-SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
-SUT_f=nfft(SUT,dt);
 % 
+% 
+% 
+% % fSUT=0.25*(C_tl*tl)/(2*pi);
+% fmax=eta/tl;
+% fSUT=linspace(0,fmax,numel(t));
+% SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
+% SUT_f=nfft(SUT,dt);
+% 
+phi2=1e-24; phi3=1e-36;
+SUT_f=superGauss(0,Fs/50,2,f,0).*exp(1j*phi2*(2*pi*f).^2/2+1j*phi3*(2*pi*f).^3/6);
+SUT=nifft(SUT_f,Fs);
 %%%%%%%%%%%%%%%%
 %% Processing %%
 %%%%%%%%%%%%%%%%
@@ -136,7 +143,7 @@ sampSUT_f=nfft(sampSUT,dt,scale);
 sampSUTdisp_f=(sampSUT_f).*exp(1j*phaseGVD);
 sampSUTdisp=nifft(sampSUTdisp_f,Fs,scale);
 
-%%% short inverse fourier transform
+%%% short inverse fourier tlansform
 sampSUT_sift_disp=exp(1j*phaseGVD).*SUT_f;
 sampSUT_sift_disp_t=nifft(sampSUT_sift_disp,Fs);
 
@@ -149,18 +156,18 @@ sampSUT_sift_out=nfft(sampSUT_sift_out_t,dt);
 
 
 
-%% Filter Spectrogram Signal
-sampSUTdisp=(filtSG_tf(sampSUTdisp,t,f,round((10/tr)/df),5,0));
+%% Filter Spectlogram Signal
+sampSUTdisp=(filtSG_tf(sampSUTdisp,t,f,round((10/tl)/df),5,0));
 
 %%% Reshape output signal to get 2D representation
-sfift=reshape(circshift(sampSUT_sift_out(1:floor(lent/round(nFreqMax))*round(nFreqMax)),0),round(nFreqMax),floor(lent/nFreqMax));
-figure;imagesc(abs(sfift).^2)
+sono=reshape(circshift(sampSUT_sift_out(1:floor(lent/round(nFreqMax))*round(nFreqMax)),0),round(nFreqMax),floor(lent/nFreqMax));
+figure;imagesc(abs(sono).^2)
 figure;plot(f,abs(sampSUT_sift_out).^2)
 f_spec=(tSingleSamp-max(tSingleSamp)/2)/phi/(2*pi);
 t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
 
 %%% Reshape output signal to get 2D representation
-% sptgm=reshape(circshift(sampSUTdisp(1:lensInds(end)),0),ntr,(numel(lensInds)-1));
+% sptgm=reshape(circshift(sampSUTdisp(1:lensInds(end)),0),ntl,(numel(lensInds)-1));
 % f_spec=(tSingleSamp-max(tSingleSamp)/2)/phi/(2*pi);
 % t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
 
@@ -171,7 +178,7 @@ t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
 % %% Reshape SUT for FFT
 % fSingleSamp=linspace(-Fs/2,Fs/2,numel(tSingleSamp));
 % padLen=2^17;
-%  SUT2D=reshape(circshift(SUT(1:lensInds(end)),0),ntr,(numel(lensInds)-1));
+%  SUT2D=reshape(circshift(SUT(1:lensInds(end)),0),ntl,(numel(lensInds)-1));
 % SUT2DPad=[zeros(padLen,numel(SUT2D(1,:))); SUT2D; zeros(padLen,numel(SUT2D(1,:)))];
 % tPad=((1:numel(SUT2DPad(:,1)))-numel(SUT2DPad))*dt;
 % 
@@ -187,11 +194,11 @@ t_spec=linspace(-tWind/2,tWind/2,numel(lensInds)-1);
 
 %% Plotting section
 
-tlims=[-200 200]*tr+7.511e-8;
+tlims=[-200 200]*tl+7.511e-8;
 ylims=([-0.1 1.1]);
 ylimsNegPos=([-1.1 1.1]);
-numtrWindLims=20;
-tlims='auto';%(t(end)/2+[-numtrWindLims*tr numtrWindLims*tr])*1e9;
+numtlWindLims=20;
+tlims='auto';%(t(end)/2+[-numtlWindLims*tl numtlWindLims*tl])*1e9;
 % tlims=[t(1) t(end)];
 
 tps=1e12; tns=1e9; tus=1e6; 
@@ -233,7 +240,7 @@ ylabel('Intensity')
 % plot(t*tns,sampSig)
  xlim(tlims);%ylim(ylimsNegPos);
 xlabel(lbns)
-legend('abs','angle','spectrogram')
+legend('abs','angle','spectlogram')
 ylabel('Phase (rad)')
 
 subplot(4,4,9:12)
@@ -247,19 +254,19 @@ ylabel('Intensity')
 % plot(t*tns,sampSig)
  xlim(tlims);%ylim(ylimsNegPos);
 xlabel(lbns)
-legend('real','imag','spectrogram')
+legend('real','imag','spectlogram')
 ylabel('Phase (rad)')
 
 subplot(4,4,13:16)
 
-    imagesc(t_spec*tns,f_spec*fG,(abs(sptgm).^2));
+    imagesc(t_spec*tns,f_spec*fG,(abs(sono).^2));
     hcb=colorbar();
      xlim(tlims)
 
     ylabel(hcb,'Power (dB)')
     xlabel('Time (ns)')
     
-%% fold over spectrogram for "eye diagram"
+%% fold over spectlogram for "eye diagram"
 
 
 
@@ -271,7 +278,7 @@ subplot(4,4,13:16)
 % yyaxis right
 % plot(t*tns,sampSig)
 % xlimProp=1/8;
-%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tr*tns])
+%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tl*tns])
 % xlabel(lbns)
 % 
 % % legend('sampled SUT','Dispersed wvf','Time Lens')
@@ -283,7 +290,7 @@ subplot(4,4,13:16)
 % yyaxis right
 % plot(t*tns,sampSig)
 % xlimProp=5/6;
-%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tr*tns])
+%  xlim([xlimProp*t(end)*tns xlimProp*t(end)*tns+1.2*tl*tns])
 % xlabel(lbns)
 % ylabel('Phase (rad)')
 % 
@@ -329,7 +336,7 @@ waveform=exp(-(1+1j*C)/2*((xs-center)/t0).^(2*m));
 end
 
 function fftout=nfft(sig,varargin)
-%fft gives the swaped spectrum.
+%fft gives the swaped spectlum.
 unnormdfft=fftshift(fft(ifftshift(sig)));
 
 scale=nargin-1;
