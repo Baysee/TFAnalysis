@@ -133,36 +133,36 @@ SUT_f=superGauss(0,BW,2,f,0).*exp(1j*phi2*(2*pi*f).^2/2);%+1j*phi3*(2*pi*f).^3/6
 SUT=nifft(SUT_f,Fs);
 
 % 
-% 
-% tChirp=tSingleSamp;
-% % SUTfreqs=linspace(-2e12,2e12,numel(tChirp));
-% f1=0.05e12; f0=0.1e12;
-% SUT=zeros(1,lent);
-% SUT(round((lent/2-ntl/2):(lent/2+ntl/2-1)))=cos(2*pi*((f1-f0)/(2*tl)*tChirp.^2+f0*tChirp));%+ones(1,ntl);
-% SUT_f=nfft(SUT,dt);tl
 
-
-
-
-
-% fSUT=0.25*(C_tl*tl)/(2*pi);
-fSUT=linspace(0,1e3*(C_tl*tl)/(2*pi)/4,numel(t));
-SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
-
-fSUT=linspace(0,1e2*(C_tl*tl)/(2*pi)/4,ntl);
-SUTAction=(cos(2*pi*fSUT.*tSingleSamp));%.*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
+tChirp=tSingleSamp;
+% SUTfreqs=linspace(-2e12,2e12,numel(tChirp));
+f1=0.01e12; f0=fmax*20;%0.1e12;
 SUT=zeros(1,lent);
-SUT(lent/2-round(ntl/2):lent/2+round(ntl/2)-1)=SUTAction;
-SUT_f=nfft(SUT,dt);
+SUT(round((lent/2-ntl/2):(lent/2+ntl/2-1)))=exp(1j*(2*pi*((f1-f0)/(2*tl)*tChirp.^2+f0*tChirp)));%+ones(1,ntl);
+SUT_f=nfft(SUT,dt);tl
+
+
+
+
+% 
+% % fSUT=0.25*(C_tl*tl)/(2*pi);
+% fSUT=linspace(0,1e3*(C_tl*tl)/(2*pi)/4,numel(t));
+% SUT=(cos(2*pi*fSUT.*t)).*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
+% 
+% fSUT=linspace(0,1e2*(C_tl*tl)/(2*pi)/4,ntl);
+% SUTAction=(cos(2*pi*fSUT.*tSingleSamp));%.*(superGauss(0,tWind/8,1,t,tWind/6)+superGauss(0,tWind/8,2,t,-tWind/6));
+% SUT=zeros(1,lent);
+% SUT(lent/2-round(ntl/2):lent/2+round(ntl/2)-1)=SUTAction;
+% SUT_f=nfft(SUT,dt);
 
 % SUT_f=superGauss(0,3e12,10,f,0).*exp(1j*1*phi2perKm*(2*pi*f).^2);%
 % SUT=nifft(SUT_f,Fs);
-
-BW=3e12;%Fs/20;
-tExt=tl*2;
-phi2=tExt/(2*pi*BW);
-SUT_f=superGauss(0,BW,2,f,0).*exp(1j*phi2*(2*pi*f).^2/2);%+1j*phi3*(2*pi*f).^3/6);
-SUT=nifft(SUT_f,Fs);
+% 
+% BW=3e12;%Fs/20;
+% tExt=tl*2;
+% phi2=tExt/(2*pi*BW);
+% SUT_f=superGauss(0,BW,2,f,0).*exp(1j*phi2*(2*pi*f).^2/2);%+1j*phi3*(2*pi*f).^3/6);
+% SUT=nifft(SUT_f,Fs);
 
 
 figure;
@@ -170,6 +170,8 @@ subplot(2,1,1)
 plot(f,abs(SUT_f).^2)
 subplot(2,1,2)
 plot(t,abs(SUT).^2)
+hold on
+plot(t,real(SUT))
 % % 
 % 
 % figure;
